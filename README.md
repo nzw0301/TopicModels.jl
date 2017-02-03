@@ -1,13 +1,5 @@
 # TopicModels
 
-[![Build Status](https://travis-ci.org/nzw0301/TopicModels.jl.svg?branch=master)](https://travis-ci.org/nzw0301/TopicModels.jl)
+## Implementations
 
-[![Coverage Status](https://coveralls.io/repos/nzw0301/TopicModels.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/nzw0301/TopicModels.jl?branch=master)
-
-[![codecov.io](http://codecov.io/github/nzw0301/TopicModels.jl/coverage.svg?branch=master)](http://codecov.io/github/nzw0301/TopicModels.jl?branch=master)
-
-----
-
-# Implementations
-
-- `CGSLDA` : LDA (with collapsed Gibbs sampling) based on [Thomas L. Griffiths and Mark Steyvers. Finding scientific topics. PNAS, 2004](http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf)
+- `CGSLDA` : LDA (with collapsed Gibbs sampling) based on [Thomas L. Griffiths and Mark Steyvers. Finding scientific topics. PNAS, 2004.](http://psiexp.ss.uci.edu/research/papers/sciencetopics.pdf)
