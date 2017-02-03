@@ -1,5 +1,8 @@
 module TopicModels
 
-# package code goes here
+export TopicModels
 
-end # module
+include("corpus.jl")
+include("CGSLDA.jl")
+
+end
