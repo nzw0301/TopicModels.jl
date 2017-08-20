@@ -9,26 +9,26 @@ type Corpus
     function Corpus(path::String)
         w2i = Dict{String, Int64}()
         i2w = String[]
-        doc_lenths = Int64[]
-        docsIds = Array{Int64,1}[]
+        doc_lengths = Int64[]
+        docs_ids = Array{Int64,1}[]
         open(path) do f
             for line in readlines(f)
                 doc = split(line)
-                wordIDs = Int64[]
+                word_ids = Int64[]
                 for w in doc
                     w_id = get(w2i, w, length(w2i)+1)
-                    push!(wordIDs, w_id)
+                    push!(word_ids, w_id)
                     if length(w2i) < w_id # new
                         w2i[w] = w_id
                         push!(i2w, w)
                     end
                 end
-                push!(docsIds, wordIDs)
-                push!(doc_lenths, length(wordIDs))
+                push!(docs_ids, word_ids)
+                push!(doc_lengths, length(word_ids))
             end
         end
 
-        return new(docsIds, doc_lenths, w2i, i2w, length(w2i), length(docsIds))
+        return new(docs_ids, doc_lengths, w2i, i2w, length(w2i), length(docs_ids))
     end
 end
 

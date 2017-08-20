@@ -32,7 +32,7 @@ type CGSLDA
     end
 end
 
-function train(model::CGSLDA, iteration::Int64)
+function train(model::CGSLDA, iteration=777)
     function add(model::CGSLDA, doc_id::Int64, word::Int64, topic::Int64)
         model.nkv[topic, word] += 1
         model.ndk[doc_id, topic] += 1
