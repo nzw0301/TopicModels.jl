@@ -1,20 +1,24 @@
-type CGSLDA
+struct CGSLDA
     corpus::Corpus
-    k::Int64
-    V::Int64
-    D::Int64
+    k::Int
+    V::Int
+    D::Int
     beta::Float64
-    alpha::Array{Float64,1}
-    nkv::Array{Int64,2}
-    ndk::Array{Int64,2}
-    nk::Array{Int64,1}
-    z::Array{Array{Int64,1},1}
+    alpha::Array{Float64, 1}
+    nkv::Array{Int, 2}
+    ndk::Array{Int, 2}
+    nk::Array{Int, 1}
+    z::Array{Array{Int, 1}, 1}
 
     function CGSLDA(corpus::Corpus, k=10, beta=0.01, alpha=0.1)
-        topics = Array{Int64,1}[]
-        nkv = zeros(Int64, k, corpus.V)
-        ndk = zeros(Int64, corpus.D, k)
-        nk = zeros(Int64, k)
+        @assert k > 0
+        @assert alpha > 0.
+        @assert beta > 0.
+
+        topics = Array{Int, 1}[]
+        nkv = zeros(Int, k, corpus.V)
+        ndk = zeros(Int, corpus.D, k)
+        nk = zeros(Int, k)
 
         for (doc_id, words) in enumerate(corpus.docs)
             z = rand(1:k, length(words))
@@ -33,19 +37,19 @@ type CGSLDA
 end
 
 function train(model::CGSLDA, iteration=777)
-    function add(model::CGSLDA, doc_id::Int64, word::Int64, topic::Int64)
+    function add(model::CGSLDA, doc_id::Int, word::Int, topic::Int)
         model.nkv[topic, word] += 1
         model.ndk[doc_id, topic] += 1
         model.nk[topic] += 1
     end
 
-    function remove(model::CGSLDA, doc_id::Int64, word::Int64, topic::Int64)
+    function remove(model::CGSLDA, doc_id::Int, word::Int, topic::Int)
         model.nkv[topic, word] -= 1
         model.ndk[doc_id, topic] -= 1
         model.nk[topic] -= 1
     end
 
-    function sample{Int64}(model::CGSLDA, doc_id::Int64, word::Int64)
+    function sample{Int}(model::CGSLDA, doc_id::Int, word::Int)
         k = model.k
         beta = model.beta
         V = model.V
@@ -77,11 +81,11 @@ function train(model::CGSLDA, iteration=777)
     end
 end
 
-function word_predict(model::CGSLDA, topic_id::Int64)
+function word_predict(model::CGSLDA, topic_id::Int)
     return (model.nkv[topic_id, :] + model.beta) / (model.nk[topic_id] + model.V * model.beta)
 end
 
-function topic_predict(model::CGSLDA, doc_id::Int64)
+function topic_predict(model::CGSLDA, doc_id::Int)
     p = model.ndk[doc_id, :] + model.alpha[model.k]
     return p/sum(p)
 end
