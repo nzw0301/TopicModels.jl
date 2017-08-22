@@ -51,12 +51,10 @@ function train(model::CGSLDA, iteration=777)
 
     function sample{Int}(model::CGSLDA, doc_id::Int, word::Int)
         k = model.k
-        beta = model.beta
-        V = model.V
         alpha = model.alpha
         pro = zeros(k)
         for t in 1:k
-            pro[t] = (model.ndk[doc_id, t]+alpha[t])*(model.nkv[t, word]+beta) / (beta*V+model.nk[t])
+            pro[t] = (model.ndk[doc_id, t]+alpha[t])*(model.nkv[t, word]+model.beta) / (beta*model.V+model.nk[t])
         end
 
         u = rand()*sum(pro)
