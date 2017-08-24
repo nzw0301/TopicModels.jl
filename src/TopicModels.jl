@@ -7,5 +7,6 @@ export CGSLDA, train, word_predict, topic_predict
 include("Corpus.jl")
 include("Distributions.jl")
 include("CGSLDA.jl")
+include("PolylingualLDA.jl")
 
 end
