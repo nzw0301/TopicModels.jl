@@ -4,15 +4,14 @@ struct CGSLDA
     V::Int
     D::Int
     beta::Float64
-    alpha::Array{Float64, 1}
+    doc_dirichlet::Dirichlet
     nkv::Array{Int, 2}
     ndk::Array{Int, 2}
     nk::Array{Int, 1}
     z::Array{Array{Int, 1}, 1}
 
-    function CGSLDA(corpus::Corpus, k=10, beta=0.01, alpha=0.1)
+    function CGSLDA(corpus::Corpus, k=10, beta=0.01)
         @assert k > 0
-        @assert alpha > 0.
         @assert beta > 0.
 
         topics = Array{Int, 1}[]
@@ -32,7 +31,7 @@ struct CGSLDA
         end
 
         return new(corpus, k, corpus.V, corpus.D, beta,
-                   fill(alpha, k), nkv, ndk, nk, topics)
+                   Dirichlet(k), nkv, ndk, nk, topics)
     end
 end
 
@@ -51,10 +50,10 @@ function train(model::CGSLDA, iteration=777)
 
     function sample{Int}(model::CGSLDA, doc_id::Int, word::Int)
         k = model.k
-        alpha = model.alpha
         pro = zeros(k)
         for t in 1:k
-            pro[t] = (model.ndk[doc_id, t]+alpha[t])*(model.nkv[t, word]+model.beta) / (beta*model.V+model.nk[t])
+            pro[t] = (model.ndk[doc_id, t]+get_alpha(model.doc_dirichlet, t))*
+                     (model.nkv[t, word]+model.beta) / (model.beta*model.V+model.nk[t])
         end
 
         u = rand()*sum(pro)
@@ -84,6 +83,10 @@ function word_predict(model::CGSLDA, topic_id::Int)
 end
 
 function topic_predict(model::CGSLDA, doc_id::Int)
-    p = model.ndk[doc_id, :] + model.alpha[model.k]
+    p  = zeros(model.k)
+    for k in i:model.k
+        p[k] = model.ndk[doc_id, k] + get_alpha(model.dirichlet, k)
+    end
+
     return p/sum(p)
 end

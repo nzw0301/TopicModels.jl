@@ -1,3 +1,3 @@
-for fname in ["dirichlet.jl"]
+for fname in ["Dirichlet.jl"]
     include(joinpath("distributions", fname))
 end
