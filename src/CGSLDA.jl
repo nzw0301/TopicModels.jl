@@ -14,14 +14,14 @@ struct CGSLDA
         @assert k > 0
         @assert beta > 0.
 
-        topics = Array{Int, 1}[]
+        topics = Array{Array{Int, 1}, 1}(corpus.D)
         nkv = zeros(Int, k, corpus.V)
         ndk = zeros(Int, corpus.D, k)
         nk = zeros(Int, k)
 
         for (doc_id, words) in enumerate(corpus.docs)
             z = rand(1:k, length(words))
-            push!(topics, z)
+            topics[doc_id] = z
 
             for (word, topic) in zip(words, z)
                 nkv[topic, word] += 1
@@ -52,7 +52,7 @@ function train(model::CGSLDA, iteration=777)
         k = model.k
         pro = zeros(k)
         for t in 1:k
-            pro[t] = (model.ndk[doc_id, t]+get_alpha(model.doc_dirichlet, t))*
+            pro[t] = (model.ndk[doc_id, t]+get_alpha(model.doc_dirichlet, t)) *
                      (model.nkv[t, word]+model.beta) / (model.beta*model.V+model.nk[t])
         end
 
@@ -84,8 +84,8 @@ end
 
 function topic_predict(model::CGSLDA, doc_id::Int)
     p  = zeros(model.k)
-    for k in i:model.k
-        p[k] = model.ndk[doc_id, k] + get_alpha(model.dirichlet, k)
+    for k in 1:model.k
+        p[k] = model.ndk[doc_id, k] + get_alpha(model.doc_dirichlet, k)
     end
 
     return p/sum(p)

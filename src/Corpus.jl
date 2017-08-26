@@ -7,14 +7,14 @@ struct Corpus
     D::Int
 
     function Corpus(path::String)
-        w2i = Dict{String, Int64}()
+        w2i = Dict{String, Int}()
         i2w = String[]
-        doc_lengths = Int64[]
-        docs = Array{Int64, 1}[]
+        doc_lengths = Int[]
+        docs = Array{Int, 1}[]
         open(path) do f
             for line in readlines(f)
                 doc = split(line)
-                word_ids = Int64[]
+                word_ids = Int[]
                 for w in doc
                     w_id = get(w2i, w, length(w2i)+1)
                     push!(word_ids, w_id)

@@ -1,0 +1,7 @@
+lisp lisp lisp scala scala scala clojure clojure
+java java java scala scala scala
+book book library library lisp lisp clojure clojure
+writing writing book book library library
+scala book lisp book java book clojure
+movie movie article article book book mars mars
+movie movie article article mars mars mars
