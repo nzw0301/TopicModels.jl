@@ -7,7 +7,6 @@ export PolylingualTM, train, word_predict, topic_predict
 
 include("Corpus.jl")
 include("Distributions.jl")
-include("CGSLDA.jl")
-include("PolylingualTM.jl")
+include("Models.jl")
 
 end
