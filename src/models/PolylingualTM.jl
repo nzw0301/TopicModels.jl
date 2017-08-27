@@ -62,20 +62,15 @@ function train(model::PolylingualTM, iteration=777)
 
     function sample{Int}(model::PolylingualTM, lang::Int, doc_id::Int, word::Int)
         K = model.K
-        pro = zeros(K)
+        cum_sum = zeros(K)
+        pre_cumsum_term = 0.
         for k in 1:K
-            pro[k] = (model.nldk[lang, doc_id, k]+get_alpha(model.doc_dirichlet, k))*
+            cum_sum[k] = pre_cumsum_term = pre_cumsum_term+(model.nldk[lang, doc_id, k]+get_alpha(model.doc_dirichlet, k))*
                      (model.nlkv[lang][k, word]+model.beta_array[lang]) /
                      (model.beta_array[lang]*model.Vl[lang]+model.nlk[lang, k])
         end
 
-        u = rand()*sum(pro)
-        for k in 1:K
-            u -= pro[k]
-            if u < 0.0
-                return k
-            end
-        end
+        return searchsortedfirst(cum_sum, rand()*pre_cumsum_term)
     end
 
     for i in 1:iteration
