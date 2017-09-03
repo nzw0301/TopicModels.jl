@@ -5,8 +5,8 @@ struct FPDLDA
     D::Int
     beta::Float64
     doc_dirichlet::Dirichlet
-    nkv::Array{Int, 2} # cscmatrix
-    ndk::Array{Int, 2} # cscmatrix
+    nkv::SparseMatrixCSC{Int,Int}
+    nkd::SparseMatrixCSC{Int,Int}
     nk::Array{Int, 1}
     z::Array{Array{Int, 1}, 1}
 
@@ -15,102 +15,99 @@ struct FPDLDA
         @assert beta > 0.
 
         topics = Array{Array{Int, 1}, 1}(corpus.D)
-        nkv = zeros(Int, K, corpus.V)
-        ndk = zeros(Int, corpus.D, K)
+        nkv = spzeros(Int, K, corpus.V)
+        nkd = spzeros(Int, K, corpus.D)
         nk = zeros(Int, K)
 
+        # init topic
         for (doc_id, words) in enumerate(corpus.docs)
             z = rand(1:K, length(words))
             topics[doc_id] = z
 
             for (word, topic) in zip(words, z)
                 nkv[topic, word] += 1
-                ndk[doc_id, topic] += 1
+                nkd[topic, doc_id] += 1
                 nk[topic] += 1
             end
         end
 
         new(corpus, K, corpus.V, corpus.D, beta,
-            Dirichlet(K), nkv, ndk, nk, topics)
+            Dirichlet(K), nkv, nkd, nk, topics)
     end
 end
 
 function train(model::FPDLDA, iteration=777)
     function add(model::FPDLDA, doc_id::Int, word::Int, topic::Int, f_tree::FTree)
         model.nkv[topic, word] += 1
-        model.ndk[doc_id, topic] += 1
+        model.nkd[topic, doc_id] += 1
         model.nk[topic] += 1
-        add_update(f_tree, model.ndk[doc_id, topic] / (model.nk[topic] + model.beta) - get_node_value(f_tree, topic))
+
+        add_update(f_tree,
+                   topic,
+                   (model.nkd[topic, doc_id] + get_alpha(model.doc_dirichlet, topic))
+                    / (model.nk[topic] + model.V * model.beta) - get_node_value(f_tree, topic))
     end
 
     function remove(model::FPDLDA, doc_id::Int, word::Int, topic::Int, f_tree::FTree)
         model.nkv[topic, word] -= 1
-        model.ndk[doc_id, topic] -= 1
+        model.nkd[topic, doc_id] -= 1
         model.nk[topic] -= 1
-        add_update(f_tree, model.ndk[doc_id, topic] / (model.nk[topic] + model.beta) - get_node_value(f_tree, topic))
+
+        add_update(f_tree,
+                   topic,
+                   (model.nkd[topic, doc_id] + get_alpha(model.doc_dirichlet, topic))
+                    / (model.nk[topic] + model.V * model.beta) - get_node_value(f_tree, topic))
     end
 
-    function sample{Int}(model::FPDLDA, doc_id::Int, word::Int, f_tree::FTree)
-        # init cumsum
-        int2int = Dict{Int, Int}()
+    function sample{Int}(model::FPDLDA, word::Int, f_tree::FTree)
+        topic_ids = rowvals(model.nkv)[nzrange(model.nkv, word)]
+        r = zeros(length(topic_ids))
         pre_cumsum_term = 0.
-        for k in 1:K
-            if model.nkv[k, word] != 0.
-                cum_sum[k] = pre_cumsum_term = pre_cumsum_term+(model.ndk[doc_id, k]+get_alpha(model.doc_dirichlet, k)) *
-                     (model.nkv[k, word]+model.beta) / (model.beta*model.V+model.nk[k])
-                 end
-
-        end
-        cum_sum = zeros(K)
-        pre_cumsum_term = 0.
-
-        u = rand() * (get_root_value(f_tree)) *
-        K = model.K
-
-        for k in 1:K
-            cum_sum[k] = pre_cumsum_term = pre_cumsum_term+(model.ndk[doc_id, k]+get_alpha(model.doc_dirichlet, k)) *
-                     (model.nkv[k, word]+model.beta) / (model.beta*model.V+model.nk[k])
+        for (i, k) in enumerate(topic_ids)
+            r[i] = pre_cumsum_term = pre_cumsum_term + model.nkv[k, word]*get_node_value(f_tree, k)
         end
 
-        return searchsortedfirst(cum_sum, rand()*pre_cumsum_term)
+        u = rand() * (get_root_value(f_tree) + r[end])
+        if u <= r[end]
+            return topic_ids[searchsortedfirst(r, u)]
+        else
+            return discrete(f_tree, (u-r[end])/model.beta)
+        end
     end
 
     function update_start_ftree(model::FPDLDA, doc_id::Int, f_tree::FTree)
-        for t in 1:model.K
-            if model.ndk[doc_id, t] != 0
-                add_update(t, model.ndk[doc_id, t])
-            end
+        topic_ids = rowvals(model.nkd)[nzrange(model.nkd, doc_id)]
+        for t in topic_ids
+            add_update(f_tree, t, model.nkd[t, doc_id] / (model.V * model.beta + model.nk[t]))
         end
     end
 
     function update_finish_ftree(model::FPDLDA, doc_id::Int, f_tree::FTree)
-        for t in 1:model.K
-            if model.ndk[doc_id, t] != 0
-                add_update(t, -model.ndk[doc_id, t])
-            end
+        topic_ids = rowvals(model.nkd)[nzrange(model.nkd, doc_id)]
+        for t in topic_ids
+            add_update(f_tree, t, -model.nkd[t, doc_id] / (model.V * model.beta + model.nk[t]))
         end
     end
 
-    function init_doc_ftree(model::FPDLDA, doc_id::Int)
-         Ftree(model.doc_dirichlet.get_alpha_all ./  (model.beta + model.nk))
+    function init_doc_ftree(model::FPDLDA)
+         return FTree(get_alpha_all(model.doc_dirichlet) ./  (model.V * model.beta + model.nk))
     end
 
     for i in 1:iteration
         print("\r", i)
-        doc_f_tree = init_doc_ftree(model, doc_id)
+        doc_f_tree = init_doc_ftree(model)
         for (doc_id, doc) in enumerate(model.corpus.docs)
-            update_start_ftree(model, dic_id, doc_f_tree)
+            update_start_ftree(model, doc_id, doc_f_tree)
 
             for (z_id, w) in enumerate(doc)
-                remove(model, doc_id, w, model.z[doc_id][z_id])
+                remove(model, doc_id, w, model.z[doc_id][z_id], doc_f_tree)
 
-                z_dn = sample(model, doc_id, w, f_free)
+                z_dn = sample(model, w, doc_f_tree)
                 model.z[doc_id][z_id] = z_dn
-                add(model, doc_id, w, z_dn)
+                add(model, doc_id, w, z_dn, doc_f_tree)
             end
-            update_finish_ftree(model, dic_id, doc_f_tree)
+            update_finish_ftree(model, doc_id, doc_f_tree)
         end
-
     end
 end
 
@@ -121,7 +118,7 @@ end
 function topic_predict(model::FPDLDA, doc_id::Int)
     p  = zeros(model.K)
     for k in 1:model.K
-        p[k] = model.ndk[doc_id, k] + get_alpha(model.doc_dirichlet, k)
+        p[k] = model.nkd[k, doc_id] + get_alpha(model.doc_dirichlet, k)
     end
 
     return p/sum(p)

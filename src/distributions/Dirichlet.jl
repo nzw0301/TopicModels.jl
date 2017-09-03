@@ -1,4 +1,4 @@
-struct  Dirichlet
+struct Dirichlet
     k::Int
     alpha::Array{Float64, 1}
     sum_alpha::Float64
