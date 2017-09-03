@@ -1,4 +1,4 @@
-struct  Dirichlet
+struct Dirichlet
     k::Int
     alpha::Array{Float64, 1}
     sum_alpha::Float64
@@ -15,4 +15,8 @@ end
 function get_alpha(dirichlet::Dirichlet, i::Int)
     @assert 1 <= i <= dirichlet.k
     return dirichlet.alpha[i]
+end
+
+function get_alpha_all(dirichlet::Dirichlet)
+    return dirichlet.alpha
 end
