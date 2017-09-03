@@ -67,7 +67,7 @@ function train(model::FPDLDA, iteration=777)
             r[i] = pre_cumsum_term = pre_cumsum_term + model.nkv[k, word]*get_node_value(f_tree, k)
         end
 
-        u = rand() * (get_root_value(f_tree) + r[end])
+        u = rand() * (model.beta*get_root_value(f_tree) + r[end])
         if u <= r[end]
             return topic_ids[searchsortedfirst(r, u)]
         else
@@ -75,44 +75,44 @@ function train(model::FPDLDA, iteration=777)
         end
     end
 
-    function update_start_ftree(model::FPDLDA, doc_id::Int, f_tree::FTree)
+    function begin_f_tree_update(model::FPDLDA, doc_id::Int, f_tree::FTree)
         topic_ids = rowvals(model.nkd)[nzrange(model.nkd, doc_id)]
         for t in topic_ids
             add_update(f_tree, t, model.nkd[t, doc_id] / (model.V * model.beta + model.nk[t]))
         end
     end
 
-    function update_finish_ftree(model::FPDLDA, doc_id::Int, f_tree::FTree)
+    function end_f_tree_update(model::FPDLDA, doc_id::Int, f_tree::FTree)
         topic_ids = rowvals(model.nkd)[nzrange(model.nkd, doc_id)]
         for t in topic_ids
             add_update(f_tree, t, -model.nkd[t, doc_id] / (model.V * model.beta + model.nk[t]))
         end
     end
 
-    function init_doc_ftree(model::FPDLDA)
-         return FTree(get_alpha_all(model.doc_dirichlet) ./  (model.V * model.beta + model.nk))
+    function init_ftree(model::FPDLDA)
+         FTree(get_alpha_all(model.doc_dirichlet) ./  (model.V * model.beta + model.nk))
     end
 
+    f_tree_for_q = init_ftree(model)
     for i in 1:iteration
         print("\r", i)
-        doc_f_tree = init_doc_ftree(model)
         for (doc_id, doc) in enumerate(model.corpus.docs)
-            update_start_ftree(model, doc_id, doc_f_tree)
+            begin_f_tree_update(model, doc_id, f_tree_for_q)
 
             for (z_id, w) in enumerate(doc)
-                remove(model, doc_id, w, model.z[doc_id][z_id], doc_f_tree)
+                remove(model, doc_id, w, model.z[doc_id][z_id], f_tree_for_q)
 
-                z_dn = sample(model, w, doc_f_tree)
+                z_dn = sample(model, w, f_tree_for_q)
                 model.z[doc_id][z_id] = z_dn
-                add(model, doc_id, w, z_dn, doc_f_tree)
+                add(model, doc_id, w, z_dn, f_tree_for_q)
             end
-            update_finish_ftree(model, doc_id, doc_f_tree)
+            end_f_tree_update(model, doc_id, f_tree_for_q)
         end
     end
 end
 
 function word_predict(model::FPDLDA, topic_id::Int)
-    return (model.nkv[topic_id, :] + model.beta) / (model.nk[topic_id] + model.V * model.beta)
+    (model.nkv[topic_id, :] + model.beta) / (model.nk[topic_id] + model.V * model.beta)
 end
 
 function topic_predict(model::FPDLDA, doc_id::Int)
@@ -121,5 +121,5 @@ function topic_predict(model::FPDLDA, doc_id::Int)
         p[k] = model.nkd[k, doc_id] + get_alpha(model.doc_dirichlet, k)
     end
 
-    return p/sum(p)
+    p/sum(p)
 end
