@@ -1,3 +1,9 @@
+LinuxOS, OSX: [![Build Status](https://travis-ci.org/nzw0301/TopicModels.jl.svg)](https://travis-ci.org/nzw0301/TopicModels.jl)
+
+Code Coverage: [![Coverage Status](https://coveralls.io/repos/nzw0301/topicModels.jl/badge.svg?branch=master)](https://coveralls.io/r/JuliaLang/julia?branch=master) [![codecov.io](http://codecov.io/github/nzw0301/TopicModels.jl/coverage.svg?branch=master)](http://codecov.io/github/nzw0301/TopicMidels.jl?branch=master)
+
+
+
 # TopicModels
 
 ## Implementations
