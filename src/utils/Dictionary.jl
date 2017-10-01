@@ -13,7 +13,7 @@ function get_word(dic::Dictionary, word_id::Int)
 end
 
 function get_word_index(dic::Dictionary, word)
-    return dic.word2index.get(word, nothing)
+    dic.word2index.get(word, nothing)
 end
 
 function update!(dic::Dictionary, word)
@@ -30,5 +30,5 @@ function update_and_get(dic::Dictionary, word)
         dic.word2index[word] = word_id
         push!(dic.index2word, word)
     end
-    return word_id
+    word_id
 end
