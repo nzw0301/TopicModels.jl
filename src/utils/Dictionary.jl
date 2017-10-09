@@ -12,23 +12,27 @@ function get_word(dic::Dictionary, word_id::Int)
     dic.index2word[word_id]
 end
 
-function get_word_index(dic::Dictionary, word)
-    dic.word2index.get(word, nothing)
+function get_word_index(dic::Dictionary, word::String)
+    get(dic.word2index, word, nothing)
 end
 
-function update!(dic::Dictionary, word)
+function update!(dic::Dictionary, word::String)
     word_id = get(dic.word2index, word, length(dic.word2index) + 1)
     if length(dic.word2index) < word_id
-        dic.word2index[w] = word_id
+        dic.word2index[word] = word_id
         push!(dic.index2word, word)
     end
 end
 
-function update_and_get(dic::Dictionary, word)
+function update_and_get!(dic::Dictionary, word::String)
     word_id = get(dic.word2index, word, length(dic.word2index) + 1)
     if length(dic.word2index) < word_id
         dic.word2index[word] = word_id
         push!(dic.index2word, word)
     end
     word_id
+end
+
+function get_num_vocab(dic::Dictionary)
+    length(dic.index2word)
 end
