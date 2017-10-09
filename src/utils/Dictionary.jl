@@ -12,11 +12,11 @@ function get_word(dic::Dictionary, word_id::Int)
     dic.index2word[word_id]
 end
 
-function get_word_index(dic::Dictionary, word::String)
+function get_word_index(dic::Dictionary, word)
     get(dic.word2index, word, nothing)
 end
 
-function update!(dic::Dictionary, word::String)
+function update!(dic::Dictionary, word)
     word_id = get(dic.word2index, word, length(dic.word2index) + 1)
     if length(dic.word2index) < word_id
         dic.word2index[word] = word_id
@@ -24,7 +24,7 @@ function update!(dic::Dictionary, word::String)
     end
 end
 
-function update_and_get!(dic::Dictionary, word::String)
+function update_and_get!(dic::Dictionary, word)
     word_id = get(dic.word2index, word, length(dic.word2index) + 1)
     if length(dic.word2index) < word_id
         dic.word2index[word] = word_id

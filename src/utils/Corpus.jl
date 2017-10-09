@@ -10,7 +10,7 @@ struct Corpus
         dictionary = Dictionary()
         doc_lengths = Int[]
 
-        # arguments to create csc matrix
+        # arguments for initialize csc matrix
         doc_ids = Int[]
         word_ids = Int[]
         data = Int[]
@@ -21,7 +21,7 @@ struct Corpus
                 # key: wordid, value: frequency
                 word_freq_in_doc = Dict{Int, Int}()
                 for word in split(doc)
-                    word_id = update_and_get(dictionary, word)
+                    word_id = update_and_get!(dictionary, word)
                     word_freq_in_doc[word_id] = get(word_freq_in_doc, word_id, 0) + 1
                     doc_len += 1
                 end
@@ -69,7 +69,12 @@ function get_document(corpus::Corpus, doc_id::Int)
     result
 end
 
-function get_word(corpus::Corpus, word_id:: Int)
+function get_word(corpus::Corpus, word_id::Int)
     @assert 1 <= word_id <= corpus.V
     get_word(corpus.dictionary, word_id)
+end
+
+function get_doc_length(corpus::Corpus, doc_id::Int)
+    @assert 1 <= doc_id <= corpus.D
+    corpus.doc_lengths[doc_id]
 end
