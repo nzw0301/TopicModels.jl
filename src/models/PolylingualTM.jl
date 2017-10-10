@@ -12,7 +12,7 @@ struct PolylingualTM
     z_array::Array{Array{Array{Int, 1}, 1}, 1}
 
     function PolylingualTM(corpora::Array{Corpus, 1}, beta_array::Array{Float64, 1}, K=10)
-        @assert K > 0
+        @assert K >= 1
         @assert length(corpora) == length(beta_array)
 
         num_lang = length(corpora)
@@ -41,8 +41,8 @@ struct PolylingualTM
             nlkv[l] = nkv
         end
 
-        return new(corpora, K, Vl, D, num_lang, beta_array,
-                   Dirichlet(K), nlkv, nldk, nlk, topics_array)
+        new(corpora, K, Vl, D, num_lang, beta_array,
+            Dirichlet(K), nlkv, nldk, nlk, topics_array)
     end
 end
 
@@ -70,7 +70,7 @@ function train(model::PolylingualTM, iteration=777)
                      (model.beta_array[lang]*model.Vl[lang]+model.nlk[lang, k])
         end
 
-        return searchsortedfirst(cum_sum, rand()*pre_cumsum_term)
+        searchsortedfirst(cum_sum, rand()*pre_cumsum_term)
     end
 
     for i in 1:iteration
@@ -89,20 +89,20 @@ function train(model::PolylingualTM, iteration=777)
 end
 
 function word_predict(model::PolylingualTM, lang_id::Int, topic_id::Int)
-    @assert 0 <  lang_id <= model.L
-    @assert 0 <  topic_id <= model.K
+    @assert 1 <= lang_id <= model.L
+    @assert 1 <= topic_id <= model.K
 
-    return (model.nlkv[lang_id][topic_id, :] + model.beta_array[lang_id]) /
-           (model.nlk[lang_id, topic_id] + model.Vl[lang_id] * model.beta_array[lang_id])
+    (model.nlkv[lang_id][topic_id, :] + model.beta_array[lang_id]) /
+        (model.nlk[lang_id, topic_id] + model.Vl[lang_id] * model.beta_array[lang_id])
 end
 
 function topic_predict(model::PolylingualTM, doc_id::Int)
-    @assert 0 <  doc_id <= model.D
+    @assert 1 <= doc_id <= model.D
 
     p  = zeros(model.k)
     for k in 1:model.K
         p[k] = sum(model.nldk[:, doc_id, K]) + get_alpha(model.doc_dirichlet, K)
     end
 
-    return p/sum(p)
+    p/sum(p)
 end

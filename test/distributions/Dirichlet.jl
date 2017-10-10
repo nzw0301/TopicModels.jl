@@ -4,7 +4,7 @@
         k = 5
         dist = Dirichlet(k)
         @test get_alpha(dist, 1) ≈ 1/k atol=ε
-        @test get_sum_alpha(dist) ≈ 1.0 atol=ε
+        @test get_sum_alpha(dist) ≈ 1. atol=ε
         @test get_alpha_all(dist) ≈ ones(k)/k atol=ε
     end
 
@@ -18,7 +18,7 @@
     end
 
     @testset "asymmetric float array initialization" begin
-        alpha = [1.0, 2.0, 1.0]
+        alpha = [1., 2., 1.]
         dist = Dirichlet(alpha)
         @test get_alpha(dist, 1) ≈ alpha[1] atol=ε
         @test get_sum_alpha(dist) ≈ sum(alpha) atol=ε

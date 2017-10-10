@@ -12,7 +12,7 @@ struct CGSLDA
 
     function CGSLDA(corpus::Corpus, K=10, beta=0.01)
         @assert !corpus.is_row_document
-        @assert K > 0
+        @assert K >= 1
         @assert beta > 0.
 
         topics = zeros(Int, sum(corpus.docs))
@@ -58,8 +58,8 @@ function train(model::CGSLDA, iteration=777)
         cum_sum = zeros(K)
         pre_cumsum_term = 0.
         for k in 1:K
-            cum_sum[k] = pre_cumsum_term = pre_cumsum_term+(model.ndk[doc_id, k]+get_alpha(model.doc_dirichlet, k)) *
-                     (model.nkv[k, word]+model.beta) / (model.beta*model.V+model.nk[k])
+            cum_sum[k] = pre_cumsum_term = pre_cumsum_term + (model.ndk[doc_id, k] + get_alpha(model.doc_dirichlet, k)) *
+                                            (model.nkv[k, word] + model.beta) / (model.beta * model.V + model.nk[k])
         end
 
         searchsortedfirst(cum_sum, rand()*pre_cumsum_term)
@@ -83,15 +83,11 @@ function train(model::CGSLDA, iteration=777)
     end
 end
 
-function word_predict(model::CGSLDA, topic_id::Int)
-    (model.nkv[topic_id, :] + model.beta) / (model.nk[topic_id] + model.V * model.beta)
+function word_predict(model::CGSLDA, topic::Int)
+    (model.nkv[topic, :] + model.beta) / (model.nk[topic] + model.V * model.beta)
 end
 
 function topic_predict(model::CGSLDA, doc_id::Int)
-    p  = zeros(model.K)
-    for k in 1:model.K
-        p[k] = model.ndk[doc_id, k] + get_alpha(model.doc_dirichlet, k)
-    end
-
+    p = model.ndk[doc_id, :] + get_alpha_all(model.doc_dirichlet)
     p/sum(p)
 end

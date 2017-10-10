@@ -9,13 +9,13 @@ struct Dirichlet
 end
 
 function Dirichlet(k::Int)
-    @assert k > 0
+    @assert k >= 1
     Dirichlet(fill(1/k, k))
 end
 
 function Dirichlet(k::Int, alpha::Float64)
-    @assert k > 0
-    @assert alpha > 0.0
+    @assert k >= 1
+    @assert alpha > 0.
     Dirichlet(fill(alpha, k))
 end
 
@@ -31,4 +31,3 @@ end
 function get_alpha_all(dirichlet::Dirichlet)
     dirichlet.alpha
 end
-

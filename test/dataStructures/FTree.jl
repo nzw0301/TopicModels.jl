@@ -5,13 +5,13 @@
 
     @test get_root_value(tree) ≈ sum(data) atol=ε
     @test get_node_value(tree, 3) == data[3]
-    add_update!(tree, 3, 1.0)
+    add_update!(tree, 3, 1.)
 
-    @test get_root_value(tree) ≈ sum(data)+1.0 atol=ε
-    @test get_node_value(tree, 3) == data[3] + 1.0
+    @test get_root_value(tree) ≈ sum(data) + 1. atol=ε
+    @test get_node_value(tree, 3) == data[3] + 1.
 
     truth = data
-    truth[3] += 1.0
+    truth[3] += 1.
     truth /= sum(truth)
     predicted = zeros(4)
     
