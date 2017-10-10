@@ -3,20 +3,31 @@ struct Dirichlet
     alpha::Array{Float64, 1}
     sum_alpha::Float64
 
-    function Dirichlet(k::Int)
-            new(k, ones(k)/k, 1.0)
+    function Dirichlet(alpha::Array{Float64, 1})
+        new(length(alpha), alpha, sum(alpha))
     end
 end
 
+function Dirichlet(k::Int)
+    @assert k >= 1
+    Dirichlet(fill(1/k, k))
+end
+
+function Dirichlet(k::Int, alpha::Float64)
+    @assert k >= 1
+    @assert alpha > 0.
+    Dirichlet(fill(alpha, k))
+end
+
 function get_sum_alpha(dirichlet::Dirichlet)
-    return dirichlet.sum_alpha
+    dirichlet.sum_alpha
 end
 
 function get_alpha(dirichlet::Dirichlet, i::Int)
     @assert 1 <= i <= dirichlet.k
-    return dirichlet.alpha[i]
+    dirichlet.alpha[i]
 end
 
 function get_alpha_all(dirichlet::Dirichlet)
-    return dirichlet.alpha
+    dirichlet.alpha
 end

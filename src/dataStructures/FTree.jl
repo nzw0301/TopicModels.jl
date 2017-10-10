@@ -2,7 +2,7 @@ struct FTree
     T::Int
     f::Array{Float64, 1}
     function FTree(p::Array{Float64, 1})
-        function initTree(p::Array{Float64, 1}, T::Int)
+        function init_tree(p::Array{Float64, 1}, T::Int)
             f = zeros(T*2-1)
             for i in (T-1)+length(p):-1:1
                 f[i] = if T <= i
@@ -13,12 +13,31 @@ struct FTree
             end
             return f
         end
+
         T = 2^Int(ceil(log2(length(p))))
-        new(T, initTree(p, T))
+        new(T, init_tree(p, T))
     end
 end
 
-function discrete(tree::FTree, u::Float64)
+function add_update!(tree::FTree, t::Int, delta)
+    @assert 1 <= t <= tree.T
+    i = t + tree.T - 1
+    while (i > 0)
+        tree.f[i] += delta
+        i = div(i, 2)
+    end
+end
+
+function get_node_value(tree::FTree, t::Int)
+    @assert 1 <= t <= tree.T
+    tree.f[t+tree.T-1]
+end
+
+function get_root_value(tree::FTree)
+    tree.f[1]
+end
+
+function sample(tree::FTree, u::Float64)
     i = 1
 
     while (i < tree.T)
@@ -29,21 +48,10 @@ function discrete(tree::FTree, u::Float64)
             2i
         end
     end
-    return i - tree.T + 1
+    i - tree.T + 1
 end
 
-function add_update(tree::FTree, t::Int, delta)
-    i = t + tree.T - 1
-    while (i > 0)
-        tree.f[i] += delta
-        i = div(i, 2)
-    end
-end
-
-function get_node_value(tree::FTree, t::Int)
-    return tree.f[t+tree.T-1]
-end
-
-function get_root_value(tree::FTree)
-    return tree.f[1]
+function sample(tree::FTree)
+    u = rand() * get_root_value(tree)
+    sample(tree, u)
 end
