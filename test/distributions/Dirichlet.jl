@@ -24,5 +24,5 @@
         @test get_sum_alpha(dist) ≈ sum(alpha) atol=ε
         @test get_alpha_all(dist) ≈ alpha atol=ε
         @test dist.k == 3
-    end    
+    end
 end

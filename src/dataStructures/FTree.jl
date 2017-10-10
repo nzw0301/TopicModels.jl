@@ -13,6 +13,7 @@ struct FTree
             end
             return f
         end
+
         T = 2^Int(ceil(log2(length(p))))
         new(T, initTree(p, T))
     end
@@ -29,10 +30,11 @@ function discrete(tree::FTree, u::Float64)
             2i
         end
     end
-    return i - tree.T + 1
+    i - tree.T + 1
 end
 
-function add_update(tree::FTree, t::Int, delta)
+function add_update!(tree::FTree, t::Int, delta)
+    @assert 1 <= t <= tree.T
     i = t + tree.T - 1
     while (i > 0)
         tree.f[i] += delta
@@ -41,9 +43,10 @@ function add_update(tree::FTree, t::Int, delta)
 end
 
 function get_node_value(tree::FTree, t::Int)
-    return tree.f[t+tree.T-1]
+    @assert 1 <= t <= tree.T
+    tree.f[t+tree.T-1]
 end
 
 function get_root_value(tree::FTree)
-    return tree.f[1]
+    tree.f[1]
 end
