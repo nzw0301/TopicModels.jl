@@ -2,7 +2,7 @@ struct FTree
     T::Int
     f::Array{Float64, 1}
     function FTree(p::Array{Float64, 1})
-        function initTree(p::Array{Float64, 1}, T::Int)
+        function init_tree(p::Array{Float64, 1}, T::Int)
             f = zeros(T*2-1)
             for i in (T-1)+length(p):-1:1
                 f[i] = if T <= i
@@ -15,7 +15,7 @@ struct FTree
         end
 
         T = 2^Int(ceil(log2(length(p))))
-        new(T, initTree(p, T))
+        new(T, init_tree(p, T))
     end
 end
 
