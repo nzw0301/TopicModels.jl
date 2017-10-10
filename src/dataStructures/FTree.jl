@@ -19,20 +19,6 @@ struct FTree
     end
 end
 
-function discrete(tree::FTree, u::Float64)
-    i = 1
-
-    while (i < tree.T)
-        i = if u >= tree.f[2i]
-            u -= tree.f[2i]
-            2i+1
-        else
-            2i
-        end
-    end
-    i - tree.T + 1
-end
-
 function add_update!(tree::FTree, t::Int, delta)
     @assert 1 <= t <= tree.T
     i = t + tree.T - 1
@@ -49,4 +35,23 @@ end
 
 function get_root_value(tree::FTree)
     tree.f[1]
+end
+
+function sample(tree::FTree, u::Float64)
+    i = 1
+
+    while (i < tree.T)
+        i = if u >= tree.f[2i]
+            u -= tree.f[2i]
+            2i+1
+        else
+            2i
+        end
+    end
+    i - tree.T + 1
+end
+
+function sample(tree::FTree)
+    u = rand() * get_root_value(tree)
+    sample(tree, u)
 end
